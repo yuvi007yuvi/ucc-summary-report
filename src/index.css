@@ -1,0 +1,309 @@
+:root {
+  --primary: #FFCC80; /* Light Orange */
+  --secondary: #C8E6C9; /* Light Green */
+  --accent: #FFF59D; /* Light Yellow */
+  --light-blue: #E1F5FE; /* Very Light Blue */
+  --green: #A5D6A7; /* Light Green */
+  --bg-color: #f8fafc;
+  --text-main: #334155;
+  --border-color: #000000;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+.file-upload-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.file-upload-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.file-upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4);
+}
+
+.file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-excel {
+  background-color: #217346;
+  color: white;
+}
+
+.btn-excel:hover {
+  background-color: #1a5c37;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(33, 115, 70, 0.3);
+}
+
+.btn-pdf {
+  background-color: #D32F2F;
+  color: white;
+}
+
+.btn-pdf:hover {
+  background-color: #b71c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+}
+
+.dashboard {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.table-container {
+  flex: 1 1 0%;
+  min-width: 800px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  overflow-x: auto;
+}
+
+.sidebar {
+  flex: 0 0 350px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.summary-table th, .summary-table td {
+  border: 1px solid var(--border-color);
+  padding: 0.2rem 0.5rem;
+  text-align: center; /* Center align all text/numbers */
+  font-weight: bold;
+}
+
+.summary-table th {
+  font-weight: 700;
+  color: #000;
+}
+
+.header-orange { 
+  background: linear-gradient(135deg, #FFCC80 0%, #FFB74D 100%);
+  font-size: 1.6rem; 
+  padding: 1.2rem 1.5rem !important; 
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+.header-orange span {
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+  font-weight: 800;
+}
+
+.header-orange img {
+  height: 70px !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  border: 2px solid white;
+  background: white;
+  padding: 5px;
+  transition: transform 0.2s ease;
+}
+
+.header-orange img:hover {
+  transform: scale(1.05);
+}
+
+.header-brown { 
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+  color: #1b5e20 !important; 
+  font-size: 1.4rem; 
+  padding: 1rem !important; 
+  font-weight: 800; 
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.header-yellow { 
+  background: linear-gradient(135deg, #FFF59D 0%, #FFF176 100%);
+  font-size: 1.2rem; 
+  padding: 0.8rem !important; 
+  color: #333;
+  font-weight: bold;
+}
+.bg-yellow { background-color: var(--accent); }
+.bg-light-blue { background-color: var(--light-blue); font-weight: bold;}
+.bg-green { background-color: var(--green); }
+
+.bg-commercial { background-color: #FFE4E1 !important; }
+.bg-industrial { background-color: #E3F2FD !important; }
+.bg-institutional { background-color: #F3E5F5 !important; }
+.bg-residential { background-color: #FFF9C4 !important; }
+.bg-total { background-color: #E8F5E9 !important; }
+
+/* Responsive Media Queries */
+@media (max-width: 1200px) {
+  .dashboard {
+    flex-direction: column;
+  }
+  .table-container {
+    min-width: 100%;
+    width: 100%;
+  }
+  .sidebar {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-orange > div {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  .header-orange img {
+    height: 40px !important;
+  }
+  .header-orange span {
+    font-size: 1.1rem;
+  }
+  .header-brown {
+    font-size: 1.1rem;
+    padding: 0.5rem !important;
+  }
+  .header-yellow {
+    font-size: 0.9rem;
+  }
+}
+
+.summary-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.summary-table tbody tr:last-child {
+  font-weight: bold;
+  background-color: #f1f5f9;
+}
+
+.sidebar-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sidebar-table th, .sidebar-table td {
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.sidebar-table th {
+  text-align: left;
+  font-weight: 500;
+}
+
+.sidebar-table td {
+  text-align: right;
+  font-weight: 700;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+  text-align: center;
+  gap: 1rem;
+  color: #666;
+}
+
+.empty-state svg {
+  width: 64px;
+  height: 64px;
+  color: #cbd5e1;
+}
+
+.empty-state h3 {
+  color: #334155;
+  font-size: 1.25rem;
+}
