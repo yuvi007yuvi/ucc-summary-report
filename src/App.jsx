@@ -9,33 +9,50 @@ import './index.css';
 const TOTAL_DAYS = 30;
 
 function App() {
-  const [data, setData] = useState([]);
-  const [fileName, setFileName] = useState('');
+  const [uccData, setUccData] = useState([]);
+  const [onDemandData, setOnDemandData] = useState([]);
+  const [uccFileName, setUccFileName] = useState('');
+  const [onDemandFileName, setOnDemandFileName] = useState('');
   const [totalTarget, setTotalTarget] = useState(4300000);
   const dashboardRef = useRef(null);
 
-  const handleFileUpload = (e) => {
+  const handleUccFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setFileName(file.name);
+    setUccFileName(file.name);
     
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        setData(results.data);
+        setUccData(results.data);
+      }
+    });
+  };
+
+  const handleOnDemandFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setOnDemandFileName(file.name);
+    
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        setOnDemandData(results.data);
       }
     });
   };
 
   // Process data to generate summary
   const summary = useMemo(() => {
-    if (data.length === 0) return [];
+    if (uccData.length === 0 && onDemandData.length === 0) return [];
 
     let maxDay = 0;
-    data.forEach(row => {
-      const dateRaw = row['Date'];
+    
+    const updateMaxDay = (dateRaw) => {
       if (dateRaw) {
         try {
           const parsedDate = parse(dateRaw, 'dd/MM/yyyy', new Date());
@@ -43,7 +60,10 @@ function App() {
           if (day > maxDay) maxDay = day;
         } catch (e) {}
       }
-    });
+    };
+
+    uccData.forEach(row => updateMaxDay(row['Date']));
+    onDemandData.forEach(row => updateMaxDay(row['Created Date']));
     
     // Fallback to today if parsing fails
     if (maxDay === 0) maxDay = new Date().getDate();
@@ -61,26 +81,17 @@ function App() {
         Industrial: { slip: 0, amount: 0 },
         Institutional: { slip: 0, amount: 0 },
         Residential: { slip: 0, amount: 0 },
+        OnDemand: { slip: 0, amount: 0 },
         Total: { slip: 0, amount: 0 }
       };
     }
 
-    data.forEach(row => {
-      const dateRaw = row['Date'];
-      if (!dateRaw) return;
-
-      // Ensure Date format
+    const ensureGroup = (dateRaw) => {
       let formattedDate = dateRaw;
       try {
         const parsedDate = parse(dateRaw, 'dd/MM/yyyy', new Date());
         formattedDate = format(parsedDate, 'd-MMM-yy');
-      } catch (e) {
-        // Fallback to raw if parsing fails
-      }
-
-      const type = row['Property Type Name']?.trim();
-      const amountStr = row['Amount Collected'];
-      const amount = parseFloat(amountStr) || 0;
+      } catch (e) {}
 
       if (!grouped[formattedDate]) {
         grouped[formattedDate] = {
@@ -90,13 +101,24 @@ function App() {
           Industrial: { slip: 0, amount: 0 },
           Institutional: { slip: 0, amount: 0 },
           Residential: { slip: 0, amount: 0 },
+          OnDemand: { slip: 0, amount: 0 },
           Total: { slip: 0, amount: 0 }
         };
       }
+      return grouped[formattedDate];
+    };
 
-      const rowGroup = grouped[formattedDate];
+    uccData.forEach(row => {
+      const dateRaw = row['Date'];
+      if (!dateRaw) return;
+
+      const rowGroup = ensureGroup(dateRaw);
+
+      const type = row['Property Type Name']?.trim();
+      const amountStr = row['Amount Collected'];
+      const amount = parseFloat(amountStr) || 0;
+
       let matchedCategory = null;
-
       if (type === 'Commercial') matchedCategory = 'Commercial';
       else if (type === 'Industrial') matchedCategory = 'Industrial';
       else if (type === 'Institutional') matchedCategory = 'Institutional';
@@ -108,6 +130,21 @@ function App() {
         rowGroup.Total.slip += 1;
         rowGroup.Total.amount += amount;
       }
+    });
+
+    onDemandData.forEach(row => {
+      const dateRaw = row['Created Date'];
+      if (!dateRaw) return;
+
+      const rowGroup = ensureGroup(dateRaw);
+      
+      const amountStr = row['Amount'];
+      const amount = parseFloat(amountStr) || 0;
+
+      rowGroup.OnDemand.slip += 1;
+      rowGroup.OnDemand.amount += amount;
+      rowGroup.Total.slip += 1;
+      rowGroup.Total.amount += amount;
     });
 
     // Sort by date (assuming all dates are in June 2026 for now, or just rely on simple parsing sort)
@@ -122,7 +159,7 @@ function App() {
     });
 
     return sorted;
-  }, [data]);
+  }, [uccData, onDemandData]);
 
   const totals = useMemo(() => {
     const t = {
@@ -130,6 +167,7 @@ function App() {
       Industrial: { slip: 0, amount: 0 },
       Institutional: { slip: 0, amount: 0 },
       Residential: { slip: 0, amount: 0 },
+      OnDemand: { slip: 0, amount: 0 },
       Total: { slip: 0, amount: 0 }
     };
 
@@ -142,6 +180,8 @@ function App() {
       t.Institutional.amount += row.Institutional.amount;
       t.Residential.slip += row.Residential.slip;
       t.Residential.amount += row.Residential.amount;
+      t.OnDemand.slip += row.OnDemand.slip;
+      t.OnDemand.amount += row.OnDemand.amount;
       t.Total.slip += row.Total.slip;
       t.Total.amount += row.Total.amount;
     });
@@ -200,15 +240,20 @@ function App() {
   return (
     <div className="app-container">
       <div className="header-controls">
-        <div className="file-upload-wrapper">
+        <div className="file-upload-wrapper" style={{display: 'flex', gap: '1rem'}}>
           <label className="file-upload-btn">
             <Upload size={20} />
-            {fileName ? `File: ${fileName}` : 'Upload CSV Report'}
-            <input type="file" accept=".csv" className="file-input" onChange={handleFileUpload} />
+            {uccFileName ? `UCC: ${uccFileName}` : 'Upload UCC CSV'}
+            <input type="file" accept=".csv" className="file-input" onChange={handleUccFileUpload} />
+          </label>
+          <label className="file-upload-btn">
+            <Upload size={20} />
+            {onDemandFileName ? `On-Demand: ${onDemandFileName}` : 'Upload On-Demand CSV'}
+            <input type="file" accept=".csv" className="file-input" onChange={handleOnDemandFileUpload} />
           </label>
         </div>
         
-        {data.length > 0 && (
+        {(uccData.length > 0 || onDemandData.length > 0) && (
           <div className="actions">
             <button className="btn btn-excel" onClick={handleExportExcel}>
               <FileSpreadsheet size={20} /> Export Excel
@@ -223,11 +268,11 @@ function App() {
         )}
       </div>
 
-      {data.length === 0 ? (
+      {(uccData.length === 0 && onDemandData.length === 0) ? (
         <div className="empty-state">
           <FileSpreadsheet />
           <h3>No Data Loaded</h3>
-          <p>Please upload the UCC Charge Collection Export CSV file to generate the summary.</p>
+          <p>Please upload the UCC and/or On-Demand Charge Collection Export CSV file to generate the summary.</p>
         </div>
       ) : (
         <div className="dashboard" ref={dashboardRef} style={{padding: '20px', borderRadius: '12px'}}>
@@ -235,7 +280,7 @@ function App() {
             <table className="summary-table">
               <thead>
                 <tr>
-                  <th colSpan="11" className="header-orange" style={{padding: '0.5rem 1rem'}}>
+                  <th colSpan="13" className="header-orange" style={{padding: '0.5rem 1rem'}}>
                     <div style={{position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                       <img src="/LOGO/NatureGreen_Logo.png" alt="Nature Green Logo" style={{height: '60px', background: 'white', padding: '4px', borderRadius: '4px', zIndex: 1}} />
                       <span style={{position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none'}}>Nature Green Tools & Machine Pvt Ltd</span>
@@ -244,10 +289,10 @@ function App() {
                   </th>
                 </tr>
                 <tr>
-                  <th colSpan="11" className="header-brown">NAGAR NIGAM MATHUR VRINDAVAN</th>
+                  <th colSpan="13" className="header-brown">NAGAR NIGAM MATHUR VRINDAVAN</th>
                 </tr>
                 <tr>
-                  <th colSpan="11" className="header-yellow">USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF JUNE-2026</th>
+                  <th colSpan="13" className="header-yellow">USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF JUNE-2026</th>
                 </tr>
                 <tr>
                   <th rowSpan="2" style={{width: '100px', backgroundColor: '#F5F5F5'}}>Date</th>
@@ -255,6 +300,7 @@ function App() {
                   <th colSpan="2" className="bg-industrial">Industrial</th>
                   <th colSpan="2" className="bg-institutional">Institutional</th>
                   <th colSpan="2" className="bg-residential">Residential</th>
+                  <th colSpan="2" style={{backgroundColor: '#e2e8f0'}}>On Demand</th>
                   <th colSpan="2" className="bg-total">June-26</th>
                 </tr>
                 <tr>
@@ -266,6 +312,8 @@ function App() {
                   <th className="bg-institutional">Amount</th>
                   <th className="bg-residential">Slip</th>
                   <th className="bg-residential">Amount</th>
+                  <th style={{backgroundColor: '#e2e8f0'}}>Slip</th>
+                  <th style={{backgroundColor: '#e2e8f0'}}>Amount</th>
                   <th className="bg-total">Slip</th>
                   <th className="bg-total">Amount</th>
                 </tr>
@@ -282,6 +330,8 @@ function App() {
                     <td>{renderAmount(row.Institutional.amount)}</td>
                     <td>{renderSlip(row.Residential.slip)}</td>
                     <td>{renderAmount(row.Residential.amount)}</td>
+                    <td>{renderSlip(row.OnDemand.slip)}</td>
+                    <td>{renderAmount(row.OnDemand.amount)}</td>
                     <td>{renderSlip(row.Total.slip)}</td>
                     <td>{renderAmount(row.Total.amount)}</td>
                   </tr>
@@ -296,6 +346,8 @@ function App() {
                   <td>{renderAmount(totals.Institutional.amount)}</td>
                   <td>{renderSlip(totals.Residential.slip)}</td>
                   <td>{renderAmount(totals.Residential.amount)}</td>
+                  <td>{renderSlip(totals.OnDemand.slip)}</td>
+                  <td>{renderAmount(totals.OnDemand.amount)}</td>
                   <td>{renderSlip(totals.Total.slip)}</td>
                   <td>{renderAmount(totals.Total.amount)}</td>
                 </tr>
