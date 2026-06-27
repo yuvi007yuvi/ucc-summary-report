@@ -5,9 +5,7 @@ import { Upload, FileSpreadsheet, FileText, Image as ImageIcon } from 'lucide-re
 import { toPng } from 'html-to-image';
 import { exportToExcel, exportToPDF } from './utils/exportUtils';
 import './index.css';
-
 const TOTAL_DAYS = 30;
-
 function App() {
   const [uccData, setUccData] = useState([]);
   const [onDemandData, setOnDemandData] = useState([]);
@@ -240,15 +238,19 @@ function App() {
   return (
     <div className="app-container">
       <div className="header-controls">
-        <div className="file-upload-wrapper" style={{display: 'flex', gap: '1rem'}}>
+        <div className="file-upload-wrapper">
           <label className="file-upload-btn">
-            <Upload size={20} />
-            {uccFileName ? `UCC: ${uccFileName}` : 'Upload UCC CSV'}
+            <Upload size={20} style={{ flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {uccFileName ? `UCC: ${uccFileName}` : 'Upload UCC CSV'}
+            </span>
             <input type="file" accept=".csv" className="file-input" onChange={handleUccFileUpload} />
           </label>
           <label className="file-upload-btn">
-            <Upload size={20} />
-            {onDemandFileName ? `On-Demand: ${onDemandFileName}` : 'Upload On-Demand CSV'}
+            <Upload size={20} style={{ flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {onDemandFileName ? `On-Demand: ${onDemandFileName}` : 'Upload On-Demand CSV'}
+            </span>
             <input type="file" accept=".csv" className="file-input" onChange={handleOnDemandFileUpload} />
           </label>
         </div>
@@ -261,7 +263,7 @@ function App() {
             <button className="btn btn-pdf" onClick={handleExportPDF}>
               <FileText size={20} /> Export PDF
             </button>
-            <button className="btn" style={{backgroundColor: '#8b5cf6', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem'}} onClick={handleExportImage}>
+            <button className="btn btn-image" onClick={handleExportImage}>
               <ImageIcon size={20} /> Export Image
             </button>
           </div>
@@ -281,10 +283,10 @@ function App() {
               <thead>
                 <tr>
                   <th colSpan="13" className="header-orange" style={{padding: '0.5rem 1rem'}}>
-                    <div style={{position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                      <img src="/LOGO/NatureGreen_Logo.png" alt="Nature Green Logo" style={{height: '60px', background: 'white', padding: '4px', borderRadius: '4px', zIndex: 1}} />
-                      <span style={{position: 'absolute', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none'}}>Nature Green Tools & Machine Pvt Ltd</span>
-                      <img src="/LOGO/nagar-nigam (1).png?v=2" alt="Nagar Nigam Logo" style={{height: '60px', background: 'white', padding: '4px', borderRadius: '4px', zIndex: 1}} />
+                    <div className="table-header-logos">
+                      <img src="/LOGO/NatureGreen_Logo.png" alt="Nature Green Logo" className="logo-img" />
+                      <span className="logo-title">Nature Green Tools & Machine Pvt Ltd</span>
+                      <img src="/LOGO/nagar-nigam (1).png?v=2" alt="Nagar Nigam Logo" className="logo-img" />
                     </div>
                   </th>
                 </tr>

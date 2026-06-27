@@ -25,6 +25,8 @@ export const exportToExcel = (summary, totals, config) => {
     { wch: 12 }, // Inst Amount
     { wch: 8 },  // Res Slip
     { wch: 12 }, // Res Amount
+    { wch: 8 },  // OnDemand Slip
+    { wch: 12 }, // OnDemand Amount
     { wch: 8 },  // Total Slip
     { wch: 12 }, // Total Amount
     { wch: 2 },  // Spacer
@@ -75,26 +77,28 @@ export const exportToExcel = (summary, totals, config) => {
   addCell(3, 3, "Industrial", "s", headerFill("E3F2FD"));
   addCell(3, 5, "Institutional", "s", headerFill("F3E5F5"));
   addCell(3, 7, "Residential", "s", headerFill("FFF9C4"));
-  addCell(3, 9, "June-26", "s", headerFill("E8F5E9"));
+  addCell(3, 9, "On Demand", "s", headerFill("E2E8F0"));
+  addCell(3, 11, "June-26", "s", headerFill("E8F5E9"));
 
   // Header Row 4
-  const cats = ["FFE4E1", "E3F2FD", "F3E5F5", "FFF9C4", "E8F5E9"];
-  for (let i = 0; i < 5; i++) {
+  const cats = ["FFE4E1", "E3F2FD", "F3E5F5", "FFF9C4", "E2E8F0", "E8F5E9"];
+  for (let i = 0; i < 6; i++) {
     addCell(4, 1 + i * 2, "Slip", "s", headerFill(cats[i]));
     addCell(4, 2 + i * 2, "Amount", "s", headerFill(cats[i]));
   }
 
   // Merges for main table
   const merges = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, // Company Name
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } }, // Location
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } }, // Title
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 12 } }, // Company Name
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 12 } }, // Location
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 12 } }, // Title
     { s: { r: 3, c: 0 }, e: { r: 4, c: 0 } }, // Date
     { s: { r: 3, c: 1 }, e: { r: 3, c: 2 } }, // Commercial
     { s: { r: 3, c: 3 }, e: { r: 3, c: 4 } }, // Industrial
     { s: { r: 3, c: 5 }, e: { r: 3, c: 6 } }, // Institutional
     { s: { r: 3, c: 7 }, e: { r: 3, c: 8 } }, // Residential
-    { s: { r: 3, c: 9 }, e: { r: 3, c: 10 } }, // Total
+    { s: { r: 3, c: 9 }, e: { r: 3, c: 10 } }, // OnDemand
+    { s: { r: 3, c: 11 }, e: { r: 3, c: 12 } }, // Total
   ];
 
   // Fill empty merged cells with borders
@@ -110,10 +114,10 @@ export const exportToExcel = (summary, totals, config) => {
     }
   }
 
-  applyMergeBorders(0, 0, 0, 10, { fill: { fgColor: { rgb: "FFCC80" } } });
-  applyMergeBorders(1, 0, 1, 10, { fill: { fgColor: { rgb: "C8E6C9" } } });
-  applyMergeBorders(2, 0, 2, 10, { fill: { fgColor: { rgb: "FFF59D" } } });
-  applyMergeBorders(3, 0, 4, 10, borderAll);
+  applyMergeBorders(0, 0, 0, 12, { fill: { fgColor: { rgb: "FFCC80" } } });
+  applyMergeBorders(1, 0, 1, 12, { fill: { fgColor: { rgb: "C8E6C9" } } });
+  applyMergeBorders(2, 0, 2, 12, { fill: { fgColor: { rgb: "FFF59D" } } });
+  applyMergeBorders(3, 0, 4, 12, borderAll);
 
   // Data rows
   let r = 5;
@@ -138,8 +142,10 @@ export const exportToExcel = (summary, totals, config) => {
     addData(r, 6, row.Institutional.amount);
     addData(r, 7, row.Residential.slip);
     addData(r, 8, row.Residential.amount);
-    addData(r, 9, row.Total.slip);
-    addData(r, 10, row.Total.amount);
+    addData(r, 9, row.OnDemand.slip);
+    addData(r, 10, row.OnDemand.amount);
+    addData(r, 11, row.Total.slip);
+    addData(r, 12, row.Total.amount);
     r++;
   });
 
@@ -163,11 +169,13 @@ export const exportToExcel = (summary, totals, config) => {
   addTotal(r, 6, totals.Institutional.amount);
   addTotal(r, 7, totals.Residential.slip);
   addTotal(r, 8, totals.Residential.amount);
-  addTotal(r, 9, totals.Total.slip);
-  addTotal(r, 10, totals.Total.amount);
+  addTotal(r, 9, totals.OnDemand.slip);
+  addTotal(r, 10, totals.OnDemand.amount);
+  addTotal(r, 11, totals.Total.slip);
+  addTotal(r, 12, totals.Total.amount);
 
   // --- Sidebar Table ---
-  const sc = 12; // Start column for sidebar
+  const sc = 14; // Start column for sidebar
   const perDay = config.totalTarget / config.totalDays;
   const colTillDate = totals.Total.amount;
   const tillDateReq = summary.length * perDay;
@@ -260,6 +268,8 @@ export const exportToPDF = async (summary, totals, config) => {
     row.Institutional.amount ? Math.round(row.Institutional.amount) : '-',
     row.Residential.slip || '-',
     row.Residential.amount ? Math.round(row.Residential.amount) : '-',
+    row.OnDemand.slip || '-',
+    row.OnDemand.amount ? Math.round(row.OnDemand.amount) : '-',
     row.Total.slip || '-',
     row.Total.amount ? Math.round(row.Total.amount) : '-',
   ]);
@@ -274,6 +284,8 @@ export const exportToPDF = async (summary, totals, config) => {
     totals.Institutional.amount ? Math.round(totals.Institutional.amount) : '-',
     totals.Residential.slip || '-',
     totals.Residential.amount ? Math.round(totals.Residential.amount) : '-',
+    totals.OnDemand.slip || '-',
+    totals.OnDemand.amount ? Math.round(totals.OnDemand.amount) : '-',
     totals.Total.slip || '-',
     totals.Total.amount ? Math.round(totals.Total.amount) : '-'
   ]);
@@ -282,15 +294,16 @@ export const exportToPDF = async (summary, totals, config) => {
     startY: 20,
     margin: { left: 5, right: 5 }, // Use small margins for portrait
     head: [
-      [{ content: 'Nature Green Tools & Machine Pvt Ltd', colSpan: 11, styles: { halign: 'center', fillColor: [255, 204, 128], fontSize: 16, minCellHeight: 18, valign: 'middle' } }],
-      [{ content: 'NAGAR NIGAM MATHUR VRINDAVAN', colSpan: 11, styles: { halign: 'center', fillColor: [200, 230, 201], textColor: [0, 0, 0], fontSize: 14 } }],
-      [{ content: 'USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF JUNE-2026', colSpan: 11, styles: { halign: 'center', fillColor: [255, 245, 157], textColor: [0, 0, 0] } }],
+      [{ content: 'Nature Green Tools & Machine Pvt Ltd', colSpan: 13, styles: { halign: 'center', fillColor: [255, 204, 128], fontSize: 16, minCellHeight: 18, valign: 'middle' } }],
+      [{ content: 'NAGAR NIGAM MATHUR VRINDAVAN', colSpan: 13, styles: { halign: 'center', fillColor: [200, 230, 201], textColor: [0, 0, 0], fontSize: 14 } }],
+      [{ content: 'USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF JUNE-2026', colSpan: 13, styles: { halign: 'center', fillColor: [255, 245, 157], textColor: [0, 0, 0] } }],
       [
         { content: 'Date', rowSpan: 2, styles: { fillColor: [245, 245, 245] } },
         { content: 'Commercial', colSpan: 2, styles: { fillColor: [255, 228, 225] } },
         { content: 'Industrial', colSpan: 2, styles: { fillColor: [227, 242, 253] } },
         { content: 'Institutional', colSpan: 2, styles: { fillColor: [243, 229, 245] } },
         { content: 'Residential', colSpan: 2, styles: { fillColor: [255, 249, 196] } },
+        { content: 'On Demand', colSpan: 2, styles: { fillColor: [226, 232, 240] } },
         { content: 'June-26', colSpan: 2, styles: { fillColor: [232, 245, 233] } },
       ],
       [
@@ -298,6 +311,7 @@ export const exportToPDF = async (summary, totals, config) => {
         { content: 'Slip', styles: { fillColor: [227, 242, 253] } }, { content: 'Amount', styles: { fillColor: [227, 242, 253] } },
         { content: 'Slip', styles: { fillColor: [243, 229, 245] } }, { content: 'Amount', styles: { fillColor: [243, 229, 245] } },
         { content: 'Slip', styles: { fillColor: [255, 249, 196] } }, { content: 'Amount', styles: { fillColor: [255, 249, 196] } },
+        { content: 'Slip', styles: { fillColor: [226, 232, 240] } }, { content: 'Amount', styles: { fillColor: [226, 232, 240] } },
         { content: 'Slip', styles: { fillColor: [232, 245, 233] } }, { content: 'Amount', styles: { fillColor: [232, 245, 233] } }
       ]
     ],
@@ -317,7 +331,9 @@ export const exportToPDF = async (summary, totals, config) => {
       7: { halign: 'center' },
       8: { halign: 'center' },
       9: { halign: 'center' },
-      10: { halign: 'center' }
+      10: { halign: 'center' },
+      11: { halign: 'center' },
+      12: { halign: 'center' }
     },
     willDrawCell: (data) => {
       if (data.section === 'body' && data.row.index === tableData.length - 1) {

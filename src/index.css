@@ -15,6 +15,11 @@
   padding: 0;
 }
 
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-color);
@@ -48,7 +53,9 @@ body {
 
 .file-upload-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .file-upload-btn {
@@ -62,6 +69,8 @@ body {
   align-items: center;
   gap: 0.5rem;
   transition: transform 0.2s, box-shadow 0.2s;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .file-upload-btn:hover {
@@ -118,6 +127,17 @@ body {
   box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
 }
 
+.btn-image {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.btn-image:hover {
+  background-color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
 .dashboard {
   display: flex;
   gap: 1.5rem;
@@ -171,22 +191,35 @@ body {
   box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05);
 }
 
-.header-orange span {
+.table-header-logos {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
   text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
   font-weight: 800;
 }
 
-.header-orange img {
-  height: 70px !important;
+.logo-img {
+  height: 60px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   border: 2px solid white;
   background: white;
-  padding: 5px;
+  padding: 4px;
   transition: transform 0.2s ease;
+  z-index: 1;
 }
 
-.header-orange img:hover {
+.logo-img:hover {
   transform: scale(1.05);
 }
 
@@ -223,7 +256,7 @@ body {
     flex-direction: column;
   }
   .table-container {
-    min-width: 100%;
+    min-width: 0; /* Allow container to shrink instead of overflowing screen */
     width: 100%;
   }
   .sidebar {
@@ -232,18 +265,50 @@ body {
   }
 }
 
+@media (max-width: 992px) {
+  .header-controls {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .file-upload-wrapper {
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 768px) {
-  .header-orange > div {
+  .app-container {
+    padding: 1rem;
+  }
+  
+  .table-header-logos {
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
   }
-  .header-orange img {
+  
+  .logo-img {
     height: 40px !important;
   }
-  .header-orange span {
+  
+  .logo-title {
+    position: relative;
     font-size: 1.1rem;
   }
+
   .header-brown {
     font-size: 1.1rem;
     padding: 0.5rem !important;
