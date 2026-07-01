@@ -5,7 +5,6 @@ import { Upload, FileSpreadsheet, FileText, Image as ImageIcon } from 'lucide-re
 import { toPng } from 'html-to-image';
 import { exportToExcel, exportToPDF } from './utils/exportUtils';
 import './index.css';
-const TOTAL_DAYS = 30;
 function App() {
   const [uccData, setUccData] = useState([]);
   const [onDemandData, setOnDemandData] = useState([]);
@@ -13,6 +12,44 @@ function App() {
   const [onDemandFileName, setOnDemandFileName] = useState('');
   const [totalTarget, setTotalTarget] = useState(4300000);
   const dashboardRef = useRef(null);
+
+  // Extract month and year from the uploaded data
+  const reportDate = useMemo(() => {
+    for (const row of uccData) {
+      if (row['Date']) {
+        try {
+          const parsed = parse(row['Date'], 'dd/MM/yyyy', new Date());
+          if (!isNaN(parsed.getTime())) return parsed;
+        } catch (e) {}
+      }
+    }
+    for (const row of onDemandData) {
+      if (row['Created Date']) {
+        try {
+          const parsed = parse(row['Created Date'], 'dd/MM/yyyy', new Date());
+          if (!isNaN(parsed.getTime())) return parsed;
+        } catch (e) {}
+      }
+    }
+    return new Date(); // Fallback to current date
+  }, [uccData, onDemandData]);
+
+  const reportMonthInfo = useMemo(() => {
+    const monthName = format(reportDate, 'MMMM'); // e.g. "June", "July"
+    const monthAbbr = format(reportDate, 'MMM');   // e.g. "Jun", "Jul"
+    const yearLong = format(reportDate, 'yyyy');  // e.g. "2026"
+    const yearShort = format(reportDate, 'yy');    // e.g. "26"
+    const monthNumStr = (reportDate.getMonth() + 1).toString().padStart(2, '0'); // e.g. "06", "07"
+    const daysInMonth = new Date(reportDate.getFullYear(), reportDate.getMonth() + 1, 0).getDate();
+    return {
+      monthName,
+      monthAbbr,
+      yearLong,
+      yearShort,
+      monthNumStr,
+      daysInMonth
+    };
+  }, [reportDate]);
 
   const handleUccFileUpload = (e) => {
     const file = e.target.files[0];
@@ -68,10 +105,11 @@ function App() {
 
     const grouped = {};
 
-    // Pre-fill days up to maxDay of June 2026
+    // Pre-fill days up to maxDay of the detected month and year
+    const { monthAbbr, yearShort, monthNumStr, yearLong } = reportMonthInfo;
     for (let i = 1; i <= maxDay; i++) {
-      const formattedDate = `${i}-Jun-26`;
-      const sortKey = `${i.toString().padStart(2, '0')}/06/2026`; // For sorting if needed
+      const formattedDate = `${i}-${monthAbbr}-${yearShort}`;
+      const sortKey = `${i.toString().padStart(2, '0')}/${monthNumStr}/${yearLong}`;
       grouped[formattedDate] = {
         date: formattedDate,
         sortKey: sortKey,
@@ -196,11 +234,11 @@ function App() {
   }
 
   const handleExportExcel = () => {
-    exportToExcel(summary, totals, { totalTarget, totalDays: TOTAL_DAYS });
+    exportToExcel(summary, totals, { totalTarget, ...reportMonthInfo });
   };
 
   const handleExportPDF = async () => {
-    await exportToPDF(summary, totals, { totalTarget, totalDays: TOTAL_DAYS });
+    await exportToPDF(summary, totals, { totalTarget, ...reportMonthInfo });
   };
 
   const handleExportImage = async () => {
@@ -221,7 +259,7 @@ function App() {
   };
 
   const totalCollection = totals.Total.amount;
-  const perDayTarget = totalTarget / TOTAL_DAYS;
+  const perDayTarget = totalTarget / reportMonthInfo.daysInMonth;
   const tillDateRequired = summary.length > 0 ? (summary.length * perDayTarget) : 0; // Or based on max date? Using row count as days passed.
   const extraShort = totalCollection - tillDateRequired;
 
@@ -294,7 +332,7 @@ function App() {
                   <th colSpan="13" className="header-brown">NAGAR NIGAM MATHUR VRINDAVAN</th>
                 </tr>
                 <tr>
-                  <th colSpan="13" className="header-yellow">USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF JUNE-2026</th>
+                  <th colSpan="13" className="header-yellow">USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF {reportMonthInfo.monthName.toUpperCase()}-{reportMonthInfo.yearLong}</th>
                 </tr>
                 <tr>
                   <th rowSpan="2" style={{width: '100px', backgroundColor: '#F5F5F5'}}>Date</th>
@@ -303,7 +341,7 @@ function App() {
                   <th colSpan="2" className="bg-institutional">Institutional</th>
                   <th colSpan="2" className="bg-residential">Residential</th>
                   <th colSpan="2" style={{backgroundColor: '#e2e8f0'}}>On Demand</th>
-                  <th colSpan="2" className="bg-total">June-26</th>
+                  <th colSpan="2" className="bg-total">{reportMonthInfo.monthAbbr}-{reportMonthInfo.yearShort}</th>
                 </tr>
                 <tr>
                   <th className="bg-commercial">Slip</th>
@@ -362,7 +400,7 @@ function App() {
               <thead>
                 <tr>
                   <th colSpan="2" className="bg-light-blue" style={{textAlign: 'center', fontSize: '1.2rem', padding: '1rem'}}>
-                    Target Detail For June-2026
+                    Target Detail For {reportMonthInfo.monthName}-{reportMonthInfo.yearLong}
                   </th>
                 </tr>
               </thead>
@@ -388,7 +426,7 @@ function App() {
                 </tr>
                 <tr>
                   <th>Total Days in this Month</th>
-                  <td>{TOTAL_DAYS}</td>
+                  <td>{reportMonthInfo.daysInMonth}</td>
                 </tr>
                 <tr>
                   <th>Per Day Target</th>

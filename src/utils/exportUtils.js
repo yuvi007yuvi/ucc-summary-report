@@ -62,7 +62,7 @@ export const exportToExcel = (summary, totals, config) => {
   });
 
   // Row 2: Title
-  addCell(2, 0, "USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF\nJUNE-2026", "s", {
+  addCell(2, 0, `USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF\n${config.monthName.toUpperCase()}-${config.yearLong}`, "s", {
     font: { name: "Calibri", sz: 14, bold: true },
     alignment: { horizontal: "center", vertical: "center", wrapText: true },
     fill: { fgColor: { rgb: "FFF59D" } } // Light Yellow
@@ -78,7 +78,7 @@ export const exportToExcel = (summary, totals, config) => {
   addCell(3, 5, "Institutional", "s", headerFill("F3E5F5"));
   addCell(3, 7, "Residential", "s", headerFill("FFF9C4"));
   addCell(3, 9, "On Demand", "s", headerFill("E2E8F0"));
-  addCell(3, 11, "June-26", "s", headerFill("E8F5E9"));
+  addCell(3, 11, `${config.monthAbbr}-${config.yearShort}`, "s", headerFill("E8F5E9"));
 
   // Header Row 4
   const cats = ["FFE4E1", "E3F2FD", "F3E5F5", "FFF9C4", "E2E8F0", "E8F5E9"];
@@ -176,13 +176,13 @@ export const exportToExcel = (summary, totals, config) => {
 
   // --- Sidebar Table ---
   const sc = 14; // Start column for sidebar
-  const perDay = config.totalTarget / config.totalDays;
+  const perDay = config.totalTarget / config.daysInMonth;
   const colTillDate = totals.Total.amount;
   const tillDateReq = summary.length * perDay;
   const diff = colTillDate - tillDateReq;
 
   // Title
-  addCell(0, sc, "Target Detail For June-2026", "s", {
+  addCell(0, sc, `Target Detail For ${config.monthName}-${config.yearLong}`, "s", {
     font: { bold: true, sz: 12 }, alignment: { horizontal: "center", vertical: "center" }, border: borderAll, fill: { fgColor: { rgb: "E1F5FE" } }
   });
   merges.push({ s: { r: 0, c: sc }, e: { r: 1, c: sc + 1 } });
@@ -201,7 +201,7 @@ export const exportToExcel = (summary, totals, config) => {
   const svStyle = { font: { bold: true }, alignment: { horizontal: "center" }, border: borderAll };
   
   addCell(5, sc, "Total Days in this Month", "s", slStyle);
-  addCell(5, sc + 1, config.totalDays, "n", svStyle);
+  addCell(5, sc + 1, config.daysInMonth, "n", svStyle);
 
   addCell(6, sc, "Per Day Target", "s", slStyle);
   addCell(6, sc + 1, Math.round(perDay), "n", svStyle);
@@ -296,7 +296,7 @@ export const exportToPDF = async (summary, totals, config) => {
     head: [
       [{ content: 'Nature Green Tools & Machine Pvt Ltd', colSpan: 13, styles: { halign: 'center', fillColor: [255, 204, 128], fontSize: 16, minCellHeight: 18, valign: 'middle' } }],
       [{ content: 'NAGAR NIGAM MATHUR VRINDAVAN', colSpan: 13, styles: { halign: 'center', fillColor: [200, 230, 201], textColor: [0, 0, 0], fontSize: 14 } }],
-      [{ content: 'USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF JUNE-2026', colSpan: 13, styles: { halign: 'center', fillColor: [255, 245, 157], textColor: [0, 0, 0] } }],
+      [{ content: `USER CHARGE COLLECTION SUMMARY FOR THE MONTH OF ${config.monthName.toUpperCase()}-${config.yearLong}`, colSpan: 13, styles: { halign: 'center', fillColor: [255, 245, 157], textColor: [0, 0, 0] } }],
       [
         { content: 'Date', rowSpan: 2, styles: { fillColor: [245, 245, 245] } },
         { content: 'Commercial', colSpan: 2, styles: { fillColor: [255, 228, 225] } },
@@ -304,7 +304,7 @@ export const exportToPDF = async (summary, totals, config) => {
         { content: 'Institutional', colSpan: 2, styles: { fillColor: [243, 229, 245] } },
         { content: 'Residential', colSpan: 2, styles: { fillColor: [255, 249, 196] } },
         { content: 'On Demand', colSpan: 2, styles: { fillColor: [226, 232, 240] } },
-        { content: 'June-26', colSpan: 2, styles: { fillColor: [232, 245, 233] } },
+        { content: `${config.monthAbbr}-${config.yearShort}`, colSpan: 2, styles: { fillColor: [232, 245, 233] } },
       ],
       [
         { content: 'Slip', styles: { fillColor: [255, 228, 225] } }, { content: 'Amount', styles: { fillColor: [255, 228, 225] } },
@@ -356,7 +356,7 @@ export const exportToPDF = async (summary, totals, config) => {
   });
 
   // Sidebar Table
-  const perDay = config.totalTarget / config.totalDays;
+  const perDay = config.totalTarget / config.daysInMonth;
   const colTillDate = totals.Total.amount;
   const tillDateReq = summary.length * perDay;
   const diff = colTillDate - tillDateReq;
@@ -367,11 +367,11 @@ export const exportToPDF = async (summary, totals, config) => {
     startY: finalY + 10,
     margin: { left: 5, right: 5 },
     head: [
-      [{ content: 'Target Detail For June-2026', colSpan: 2, styles: { halign: 'center', fillColor: [225, 245, 254], fontSize: 10 } }]
+      [{ content: `Target Detail For ${config.monthName}-${config.yearLong}`, colSpan: 2, styles: { halign: 'center', fillColor: [225, 245, 254], fontSize: 10 } }]
     ],
     body: [
       [{ content: 'Total Target', styles: { fillColor: [255, 245, 157], fontStyle: 'bold' } }, { content: config.totalTarget, styles: { fillColor: [255, 245, 157], fontStyle: 'bold', halign: 'center' } }],
-      ['Total Days in this Month', { content: config.totalDays, styles: { halign: 'center', fontStyle: 'bold' } }],
+      ['Total Days in this Month', { content: config.daysInMonth, styles: { halign: 'center', fontStyle: 'bold' } }],
       ['Per Day Target', { content: Math.round(perDay).toLocaleString('en-IN'), styles: { halign: 'center', fontStyle: 'bold' } }],
       ['Total Collection Till Date', { content: Math.round(colTillDate).toLocaleString('en-IN'), styles: { halign: 'center', fontStyle: 'bold' } }],
       ['Till Date Required', { content: tillDateReq.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), styles: { halign: 'center', fontStyle: 'bold' } }],
