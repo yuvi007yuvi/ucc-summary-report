@@ -216,8 +216,18 @@ export const exportToExcel = (summary, totals, config) => {
   addCell(9, sc, "Extra/ Short", "s", { ...slStyle, fill: { fgColor: { rgb: "A5D6A7" } } });
   addCell(9, sc + 1, formatExtraShort(diff), "s", gStyle);
 
+  // Add Version and Last Updated metadata at the bottom
+  const footerRow = Math.max(r, 9) + 2;
+  const todayStr = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  const portalStr = config.portalUpdatedDate ? `  |  Portal Update Date: ${config.portalUpdatedDate}` : '';
+  addCell(footerRow, 0, `Report Version: 1.0.1${portalStr}  |  Generated: ${todayStr}`, "s", {
+    font: { name: "Calibri", sz: 9, italic: true },
+    alignment: { horizontal: "left" }
+  });
+  merges.push({ s: { r: footerRow, c: 0 }, e: { r: footerRow, c: 12 } });
+
   // Finalize Worksheet
-  const maxRow = Math.max(r, 9);
+  const maxRow = footerRow;
   const maxCol = sc + 1;
   ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxRow, c: maxCol } });
   ws['!merges'] = merges;
@@ -385,6 +395,13 @@ export const exportToPDF = async (summary, totals, config) => {
     headStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] },
     bodyStyles: { lineWidth: 0.1, lineColor: [0, 0, 0] },
   });
+
+  const finalY2 = doc.lastAutoTable.finalY || 20;
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  const todayStr = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  const portalStr = config.portalUpdatedDate ? ` | Portal Update Date: ${config.portalUpdatedDate}` : '';
+  doc.text(`Version: 1.0.1${portalStr} | Generated: ${todayStr}`, 5, finalY2 + 8);
 
   doc.save('UCC_Summary_Report.pdf');
 };

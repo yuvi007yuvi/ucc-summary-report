@@ -51,6 +51,48 @@ function App() {
     };
   }, [reportDate]);
 
+  // Extract Portal Updated Date from the UCC Export filename:
+  // e.g. UCC_Charge_Collection_Export_26_06_2026_1635_01_06_2026_to_26_06_2026.csv
+  const portalUpdatedDate = useMemo(() => {
+    if (!uccFileName) return null;
+    
+    // 1. Try to extract from the filename
+    const match = uccFileName.match(/Export_(\d{2})_(\d{2})_(\d{4})_(\d{2})(\d{2})/i);
+    if (match) {
+      const [_, day, month, year, hour, minute] = match;
+      try {
+        const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+        if (!isNaN(parsedDate.getTime())) {
+          return format(parsedDate, 'dd-MMM-yyyy hh:mm a');
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Fallback: get the latest Date and Time from uccData rows
+    if (uccData && uccData.length > 0) {
+      try {
+        let latestDate = null;
+        for (const row of uccData) {
+          const dateStr = row['Date'];
+          const timeStr = row['Time'] || '00:00:00';
+          if (dateStr) {
+            const parsed = parse(`${dateStr} ${timeStr}`, 'dd/MM/yyyy HH:mm:ss', new Date());
+            if (!isNaN(parsed.getTime())) {
+              if (!latestDate || parsed > latestDate) {
+                latestDate = parsed;
+              }
+            }
+          }
+        }
+        if (latestDate) {
+          return format(latestDate, 'dd-MMM-yyyy hh:mm a');
+        }
+      } catch (e) {}
+    }
+    
+    return null;
+  }, [uccFileName, uccData]);
+
   const handleUccFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -234,11 +276,11 @@ function App() {
   }
 
   const handleExportExcel = () => {
-    exportToExcel(summary, totals, { totalTarget, ...reportMonthInfo });
+    exportToExcel(summary, totals, { totalTarget, portalUpdatedDate, ...reportMonthInfo });
   };
 
   const handleExportPDF = async () => {
-    await exportToPDF(summary, totals, { totalTarget, ...reportMonthInfo });
+    await exportToPDF(summary, totals, { totalTarget, portalUpdatedDate, ...reportMonthInfo });
   };
 
   const handleExportImage = async () => {
@@ -309,10 +351,17 @@ function App() {
       </div>
 
       {(uccData.length === 0 && onDemandData.length === 0) ? (
-        <div className="empty-state">
-          <FileSpreadsheet />
-          <h3>No Data Loaded</h3>
-          <p>Please upload the UCC and/or On-Demand Charge Collection Export CSV file to generate the summary.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+          <div className="empty-state" style={{ marginBottom: 0 }}>
+            <FileSpreadsheet />
+            <h3>No Data Loaded</h3>
+            <p>Please upload the UCC and/or On-Demand Charge Collection Export CSV file to generate the summary.</p>
+          </div>
+          <div className="dashboard-footer" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 5px 0 5px', fontSize: '0.85rem', color: '#64748b', fontWeight: '500', borderTop: '1px dashed #cbd5e1' }}>
+            <span>Version: 1.0.1</span>
+            <span>Portal Update Date: -</span>
+            <span>Report Generated: {format(new Date(), 'dd-MMM-yyyy hh:mm a')}</span>
+          </div>
         </div>
       ) : (
         <div className="dashboard" ref={dashboardRef} style={{padding: '20px', borderRadius: '12px'}}>
@@ -446,6 +495,12 @@ function App() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="dashboard-footer" style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: '10px 5px 0 5px', fontSize: '0.85rem', color: '#64748b', fontWeight: '500', borderTop: '1px dashed #cbd5e1', marginTop: '10px', flexWrap: 'wrap', gap: '10px' }}>
+            <span>Version: 1.0.1</span>
+            <span>Portal Update Date: {portalUpdatedDate || '-'}</span>
+            <span>Report Generated: {format(new Date(), 'dd-MMM-yyyy hh:mm a')}</span>
           </div>
         </div>
       )}
